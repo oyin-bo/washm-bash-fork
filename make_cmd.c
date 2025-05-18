@@ -639,7 +639,7 @@ make_here_document (
      be read verbatim from the input.  If it was not quoted, we
      need to perform backslash-quoted newline removal. */
   delim_unquoted = (temp->redirectee.filename->flags & W_QUOTED) == 0;
-  while (full_line = read_secondary_line (delim_unquoted))
+  while ((full_line = read_secondary_line (delim_unquoted)))
     {
       register char *line;
       int len;

@@ -1,6 +1,3 @@
-#!/bin/bash -e
-
-cat >Makefile <<'EOF'
 # These variables are specifically meant to be overridable via the make
 # command-line.
 # ?= doesn't work for CC and AR because make has a default value for them.
@@ -23,7 +20,7 @@ SYSROOT ?= $EMSDK/upstream/emscripten/system
 # Set the target variables. Multiarch triples notably omit the vendor field,
 # which happens to be what we do for the main target triple too.
 TARGET_ARCH = wasm32
-TARGET_TRIPLE = $(TARGET_ARCH)-wasi
+TARGET_TRIPLE = wasm32-unknown-emscripten
 MULTIARCH_TRIPLE = $(TARGET_ARCH)-wasi
 
 # Add any extra flags
@@ -34,7 +31,7 @@ CFLAGS += --target=$(TARGET_TRIPLE)
 # TODO: Add -fno-signaling-nans when the compiler supports it.
 CFLAGS += -fno-trapping-math
 # Add all warnings, but disable a few which occur in third-party code.
-CFLAGS += -Wall -Wextra -Werror \
+CFLAGS += -Wall -Wextra \
   -Wno-null-pointer-arithmetic \
   -Wno-unused-parameter \
   -Wno-sign-compare \
@@ -47,32 +44,39 @@ CFLAGS += -Wall -Wextra -Werror \
   -Wno-unknown-warning-option \
   -Wno-bitwise-op-parentheses \
   -Wno-deprecated-non-prototype \
-  -Wno-shift-op-parentheses
+  -Wno-shift-op-parentheses \
+  -Wno-parentheses \
+  -Wno-macro-redefined \
+  -Wno-unused-label \
+  -Wno-cast-function-type-mismatch
 
-# Configure support for threads.
-ifeq ($(THREAD_MODEL), single)
-CFLAGS += -mthread-model single
-endif
-ifeq ($(THREAD_MODEL), posix)
-CFLAGS += -mthread-model posix -pthread
-endif
+# # Configure support for threads.
+# ifeq ($(THREAD_MODEL), single)
+# CFLAGS += -mthread-model single
+# endif
+# ifeq ($(THREAD_MODEL), posix)
+# CFLAGS += -mthread-model posix -pthread
+# endif
+
 CFLAGS += -I$(SYSROOT)/include
+CFLAGS += -I$(CURDIR)/builtins
 CFLAGS += -I$(CURDIR)/include
+CFLAGS += -I$(CURDIR)/lib
+CFLAGS += -I$(CURDIR)
 
 # Build the list of sources and objects
-BASH_SOURCES = \
-    $(shell find . -name \*.c)
-objs = $(patsubst $(CURDIR)/%.c,$(OBJDIR)/%.o,$(1))
-BASH_OBJS = $(call objs,$(BASH_SOURCES))
+BASH_SOURCES = $(shell find . -name \*.c | grep -v 'builtins/gen-helpfiles\.c')
+BASH_OBJS = $(patsubst %.c,%.o,$(BASH_SOURCES))
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Build the static object file
-bash.a:
-	$(CC) $(CFLAGS) alias.c
-	$(CC) $(CFLAGS) builtins/alias.c
-	$(CC) $(CFLAGS) builtins/bind.c
+bash.a: $(BASH_OBJS)
+	$(AR) rcs bash.a $(BASH_OBJS)
 
-default: bash.a
+bash.html: bash.a
+	$(CC) $(CFLAGS) -o bash.html bash.a
 
-EOF
-make
+default: bash.html
 

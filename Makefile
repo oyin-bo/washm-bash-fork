@@ -1,4 +1,4 @@
-CC=clang
+CC := emcc
 LLD_PATH=/prog/rust/build/x86_64-unknown-linux-gnu/lld/bin
 
 PACKAGE = bash

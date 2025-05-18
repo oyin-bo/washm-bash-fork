@@ -21,6 +21,18 @@
 #if !defined (_CONFTYPES_H_)
 #define _CONFTYPES_H_
 
+#ifndef CONF_HOSTTYPE
+#define CONF_HOSTTYPE "wasm32"
+#endif
+
+#ifndef CONF_OSTYPE
+#define CONF_OSTYPE "emscripten"
+#endif
+
+#ifndef CONF_MACHTYPE
+#define CONF_MACHTYPE "wasm32-unknown-emscripten"
+#endif
+
 /* Placeholder for future modifications if cross-compiling or building a
    `fat' binary, e.g. on Apple Rhapsody.  These values are used in multiple
    files, so they appear here. */

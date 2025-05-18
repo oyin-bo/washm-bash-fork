@@ -17,7 +17,7 @@ CFLAGS = --target=wasm32-wasmer-wasi \
          -O2 \
          -include strmatch.h \
          -include ../../config.h \
-         --sysroot ../../../wasix-libc/sysroot32 \
+         --sysroot $EMSDK/upstream/emscripten/system \
          -I. \
          -I.. \
          -I../.. \
